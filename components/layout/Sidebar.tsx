@@ -11,155 +11,87 @@ interface NavItem {
   roles: string[]
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void
+}
+
+export default function Sidebar({ onClose }: SidebarProps) {
   const { appUser, logout } = useAuth()
-  const { t } = useLang()
-  const pathname = usePathname()
-  const router   = useRouter()
+  const { t }               = useLang()
+  const pathname            = usePathname()
+  const router              = useRouter()
 
   if (!appUser) return null
 
   const navItems: NavItem[] = [
-    {
-      label: t.nav.dashboard,
-      path:  "/dashboard",
-      icon:  "⊞",
-      roles: ["worker", "manager"],
-    },
-    {
-      label: t.nav.messages,
-      path:  "/messages",
-      icon:  "◉",
-      roles: ["worker", "manager"],
-    },
-    {
-      label: t.nav.products,
-      path:  "/products",
-      icon:  "▦",
-      roles: ["worker"],
-    },
-    {
-      label: t.nav.annexe,
-      path:  "/annexe",
-      icon:  "≡",
-      roles: ["manager", "admin"],
-    },
-    {
-      label: t.nav.manager,
-      path:  "/manager",
-      icon:  "✓",
-      roles: ["manager"],
-    },
-    {
-      label: t.nav.team,
-      path:  "/manager/team",
-      icon:  "◈",
-      roles: ["manager"],
-    },
-    {
-      label: t.nav.admin,
-      path:  "/admin",
-      icon:  "⊛",
-      roles: ["admin"],
-    },
-    {
-      label: t.nav.users,
-      path:  "/admin/users",
-      icon:  "◎",
-      roles: ["admin"],
-    },
-    {
-      label: t.nav.annexe,
-      path:  "/admin/annexe",
-      icon:  "≡",
-      roles: ["admin"],
-    },
-    {
-      label: t.nav.stats,
-      path:  "/admin/stats",
-      icon:  "◫",
-      roles: ["admin"],
-    },
-    {
-      label: t.nav.superadmin,
-      path:  "/superadmin",
-      icon:  "◈",
-      roles: ["superadmin"],
-    },
-    {
-      label: t.nav.aiTools,
-      path:  "/ai-tools",
-      icon:  "◬",
-      roles: ["worker", "manager", "admin", "superadmin"],
-    },
-    {
-      label: t.nav.settings,
-      path:  "/settings",
-      icon:  "⊙",
-      roles: ["worker", "manager", "admin", "superadmin"],
-    },
+    { label: t.nav.dashboard, path: "/dashboard",    icon: "⊞", roles: ["worker", "manager"] },
+    { label: t.nav.messages,  path: "/messages",     icon: "◉", roles: ["worker", "manager", "admin"] },
+    { label: t.nav.products,  path: "/products",     icon: "▦", roles: ["worker"] },
+    { label: t.nav.annexe,    path: "/annexe",       icon: "≡", roles: ["manager"] },
+    { label: t.nav.manager,   path: "/manager",      icon: "✓", roles: ["manager"] },
+    { label: t.nav.team,      path: "/manager/team", icon: "◈", roles: ["manager"] },
+    { label: t.nav.admin,     path: "/admin",        icon: "⊛", roles: ["admin"] },
+    { label: t.nav.users,     path: "/admin/users",  icon: "◎", roles: ["admin"] },
+    { label: t.nav.annexe,    path: "/admin/annexe", icon: "≡", roles: ["admin"] },
+    { label: t.nav.stats,     path: "/admin/stats",  icon: "◫", roles: ["admin"] },
+    { label: t.nav.superadmin, path: "/superadmin",  icon: "◈", roles: ["superadmin"] },
+    { label: t.nav.aiTools,   path: "/ai-tools",     icon: "◬", roles: ["worker", "manager", "admin", "superadmin"] },
+    { label: t.nav.settings,  path: "/settings",     icon: "⊙", roles: ["worker", "manager", "admin", "superadmin"] },
   ]
 
-  const visible = navItems.filter(item =>
-    item.roles.includes(appUser.role)
-  )
+  const visible = navItems.filter(item => item.roles.includes(appUser.role))
 
   async function handleLogout() {
     await logout()
     router.replace("/login")
   }
 
+  function navigate(path: string) {
+    router.push(path)
+    onClose?.()
+  }
+
   return (
     <aside style={{
-      width: 220,
-      minHeight: "100vh",
-      background: "var(--sidebar-bg)",
-      borderRight: "0.5px solid var(--sidebar-border)",
-      display: "flex",
+      width:         220,
+      minHeight:     "100vh",
+      background:    "var(--sidebar-bg)",
+      borderRight:   "0.5px solid var(--sidebar-border)",
+      display:       "flex",
       flexDirection: "column",
-      position: "fixed",
-      top: 0,
-      left: 0,
-      bottom: 0,
-      zIndex: 50,
+      height:        "100%",
     }}>
 
       {/* LOGO */}
       <div style={{
-        padding: "20px 18px 16px",
+        padding:      "20px 18px 16px",
         borderBottom: "0.5px solid var(--sidebar-border)",
+        display:      "flex",
+        alignItems:   "center",
+        justifyContent: "space-between",
       }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
-            width: 32,
-            height: 32,
-            background: "var(--accent-bg)",
-            border: "0.5px solid var(--border-focus)",
-            borderRadius: 8,
-            display: "flex",
-            alignItems: "center",
+            width:          32,
+            height:         32,
+            background:     "var(--accent-bg)",
+            border:         "0.5px solid var(--border-focus)",
+            borderRadius:   8,
+            display:        "flex",
+            alignItems:     "center",
             justifyContent: "center",
-            fontSize: 16,
-            flexShrink: 0,
+            fontSize:       16,
+            flexShrink:     0,
           }}>
             ⚙
           </div>
           <div>
-            <div style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: "var(--text)",
-              letterSpacing: "-0.01em",
-            }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>
               PFE App
             </div>
             <div style={{
-              fontSize: 10,
-              color: "var(--sidebar-text)",
+              fontSize:      10,
+              color:         "var(--sidebar-text)",
               textTransform: "uppercase",
               letterSpacing: "0.06em",
             }}>
@@ -167,16 +99,34 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
+
+        {/* Close button — mobile only */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            style={{
+              background:   "none",
+              border:       "none",
+              color:        "var(--sidebar-text)",
+              cursor:       "pointer",
+              fontSize:     18,
+              padding:      "4px",
+              lineHeight:   1,
+            }}
+          >
+            ✕
+          </button>
+        )}
       </div>
 
-      {/* NAV ITEMS */}
+      {/* NAV */}
       <nav style={{
-        flex: 1,
-        padding: "10px 8px",
-        display: "flex",
+        flex:          1,
+        padding:       "10px 8px",
+        display:       "flex",
         flexDirection: "column",
-        gap: 2,
-        overflowY: "auto",
+        gap:           2,
+        overflowY:     "auto",
       }}>
         {visible.map(item => {
           const isActive = pathname === item.path ||
@@ -185,28 +135,24 @@ export default function Sidebar() {
 
           return (
             <button
-              key={item.path}
-              onClick={() => router.push(item.path)}
+              key={item.path + item.label}
+              onClick={() => navigate(item.path)}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "8px 10px",
+                display:     "flex",
+                alignItems:  "center",
+                gap:         10,
+                padding:     "8px 10px",
                 borderRadius: 7,
-                border: "none",
-                background: isActive
-                  ? "var(--sidebar-active-bg)"
-                  : "transparent",
-                color: isActive
-                  ? "var(--sidebar-active-text)"
-                  : "var(--sidebar-text)",
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: isActive ? 500 : 400,
-                fontFamily: "inherit",
-                width: "100%",
-                textAlign: "left",
-                transition: "background 0.1s, color 0.1s",
+                border:      "none",
+                background:  isActive ? "var(--sidebar-active-bg)" : "transparent",
+                color:       isActive ? "var(--sidebar-active-text)" : "var(--sidebar-text)",
+                cursor:      "pointer",
+                fontSize:    12,
+                fontWeight:  isActive ? 500 : 400,
+                fontFamily:  "inherit",
+                width:       "100%",
+                textAlign:   "left",
+                transition:  "background 0.1s, color 0.1s",
               }}
               onMouseEnter={e => {
                 if (!isActive) {
@@ -221,19 +167,10 @@ export default function Sidebar() {
                 }
               }}
             >
-              <span style={{
-                fontSize: 14,
-                width: 18,
-                textAlign: "center",
-                flexShrink: 0,
-              }}>
+              <span style={{ fontSize: 14, width: 18, textAlign: "center", flexShrink: 0 }}>
                 {item.icon}
               </span>
-              <span style={{
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}>
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {item.label}
               </span>
             </button>
@@ -243,52 +180,50 @@ export default function Sidebar() {
 
       {/* USER + LOGOUT */}
       <div style={{
-        padding: "12px 8px",
-        borderTop: "0.5px solid var(--sidebar-border)",
-        display: "flex",
+        padding:       "12px 8px",
+        borderTop:     "0.5px solid var(--sidebar-border)",
+        display:       "flex",
         flexDirection: "column",
-        gap: 4,
+        gap:           4,
       }}>
-        {/* User info */}
         <div style={{
-          display: "flex",
+          display:    "flex",
           alignItems: "center",
-          gap: 8,
-          padding: "8px 10px",
-          borderRadius: 7,
+          gap:        8,
+          padding:    "8px 10px",
         }}>
           <div style={{
-            width: 28,
-            height: 28,
-            borderRadius: 7,
-            background: "var(--accent-bg)",
-            border: "0.5px solid var(--border-focus)",
-            display: "flex",
-            alignItems: "center",
+            width:          28,
+            height:         28,
+            borderRadius:   7,
+            background:     "var(--accent-bg)",
+            border:         "0.5px solid var(--border-focus)",
+            display:        "flex",
+            alignItems:     "center",
             justifyContent: "center",
-            fontSize: 11,
-            fontWeight: 500,
-            color: "var(--accent)",
-            flexShrink: 0,
+            fontSize:       11,
+            fontWeight:     500,
+            color:          "var(--accent)",
+            flexShrink:     0,
           }}>
             {appUser.displayName.slice(0, 2).toUpperCase()}
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{
-              fontSize: 11,
-              fontWeight: 500,
-              color: "var(--text)",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
+              fontSize:     11,
+              fontWeight:   500,
+              color:        "var(--text)",
+              whiteSpace:   "nowrap",
+              overflow:     "hidden",
               textOverflow: "ellipsis",
             }}>
               {appUser.displayName}
             </div>
             <div style={{
-              fontSize: 10,
-              color: "var(--sidebar-text)",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
+              fontSize:     10,
+              color:        "var(--sidebar-text)",
+              whiteSpace:   "nowrap",
+              overflow:     "hidden",
               textOverflow: "ellipsis",
             }}>
               {appUser.email}
@@ -296,23 +231,22 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Logout */}
         <button
           onClick={handleLogout}
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "8px 10px",
+            display:     "flex",
+            alignItems:  "center",
+            gap:         10,
+            padding:     "8px 10px",
             borderRadius: 7,
-            border: "none",
-            background: "transparent",
-            color: "var(--sidebar-text)",
-            cursor: "pointer",
-            fontSize: 12,
-            fontFamily: "inherit",
-            width: "100%",
-            textAlign: "left",
+            border:      "none",
+            background:  "transparent",
+            color:       "var(--sidebar-text)",
+            cursor:      "pointer",
+            fontSize:    12,
+            fontFamily:  "inherit",
+            width:       "100%",
+            textAlign:   "left",
           }}
           onMouseEnter={e => {
             e.currentTarget.style.background = "var(--reject-bg)"

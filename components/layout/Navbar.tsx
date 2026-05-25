@@ -5,88 +5,102 @@ import { useLang }  from "@/hooks/useLang"
 import { useAuth }  from "@/hooks/useAuth"
 
 interface NavbarProps {
-  title?: string
+  title?:       string
+  onMenuClick?: () => void
 }
 
-export default function Navbar({ title }: NavbarProps) {
+export default function Navbar({ title, onMenuClick }: NavbarProps) {
   const { theme, toggleTheme } = useTheme()
-  const { lang, setLang, t }   = useLang()
-  const { appUser }             = useAuth()
+  const { lang, setLang }      = useLang()
+  const { appUser }            = useAuth()
 
   return (
     <header style={{
-      height: 52,
-      background: "var(--surface)",
+      height:       52,
+      background:   "var(--surface)",
       borderBottom: "0.5px solid var(--border)",
-      display: "flex",
-      alignItems: "center",
-      padding: "0 20px",
-      gap: 12,
-      position: "sticky",
-      top: 0,
-      zIndex: 40,
+      display:      "flex",
+      alignItems:   "center",
+      padding:      "0 16px",
+      gap:          10,
+      position:     "sticky",
+      top:          0,
+      zIndex:       40,
     }}>
 
-      {/* Page title */}
+      {/* Hamburger */}
+      <button
+        onClick={onMenuClick}
+        style={{
+          background:   "none",
+          border:       "none",
+          color:        "var(--text-sub)",
+          cursor:       "pointer",
+          fontSize:     20,
+          padding:      "4px 8px",
+          lineHeight:   1,
+          borderRadius: 6,
+          flexShrink:   0,
+        }}
+        aria-label="Menu"
+      >
+        ☰
+      </button>
+
+      {/* Title */}
       <div style={{
-        flex: 1,
-        fontSize: 13,
+        flex:       1,
+        fontSize:   13,
         fontWeight: 500,
-        color: "var(--text)",
-        letterSpacing: "-0.01em",
+        color:      "var(--text)",
       }}>
         {title || ""}
       </div>
 
-      {/* Right side controls */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-
-        {/* Language */}
+      {/* Controls */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <button
           onClick={() => setLang(lang === "fr" ? "en" : "fr")}
           style={{
-            background: "var(--card)",
-            border: "0.5px solid var(--border)",
+            background:   "var(--card)",
+            border:       "0.5px solid var(--border)",
             borderRadius: 6,
-            color: "var(--text-sub)",
-            padding: "5px 10px",
-            fontSize: 11,
-            cursor: "pointer",
-            fontFamily: "inherit",
-            fontWeight: 500,
-            letterSpacing: "0.05em",
+            color:        "var(--text-sub)",
+            padding:      "5px 10px",
+            fontSize:     11,
+            cursor:       "pointer",
+            fontFamily:   "inherit",
+            fontWeight:   500,
           }}
         >
           {lang === "fr" ? "EN" : "FR"}
         </button>
 
-        {/* Theme */}
         <button
           onClick={toggleTheme}
           style={{
-            background: "var(--card)",
-            border: "0.5px solid var(--border)",
+            background:   "var(--card)",
+            border:       "0.5px solid var(--border)",
             borderRadius: 6,
-            color: "var(--text-sub)",
-            padding: "5px 9px",
-            fontSize: 13,
-            cursor: "pointer",
-            lineHeight: 1,
+            color:        "var(--text-sub)",
+            padding:      "5px 9px",
+            fontSize:     13,
+            cursor:       "pointer",
+            lineHeight:   1,
           }}
         >
           {theme === "dark" ? "☀" : "☾"}
         </button>
 
-        {/* Role badge */}
         {appUser && (
           <div style={{
-            background: "var(--accent-bg)",
-            border: "0.5px solid var(--border-focus)",
-            borderRadius: 6,
-            padding: "4px 10px",
-            fontSize: 10,
-            color: "var(--accent)",
-            fontWeight: 500,
+            background:    "var(--accent-bg)",
+            border:        "0.5px solid var(--border-focus)",
+            borderRadius:  6,
+            padding:       "4px 10px",
+            fontSize:      10,
+            color:         "var(--accent)",
+            fontWeight:    500,
             textTransform: "uppercase",
             letterSpacing: "0.06em",
           }}>

@@ -144,3 +144,7 @@ export async function deleteAnnexeRow(rowId: string): Promise<void> {
 export async function setAnnexe(annexe: Annexe): Promise<void> {
   await setDoc(doc(db, "annexes", annexe.annexeId), annexe)
 }
+
+export async function deleteAnnexe(annexeId: string): Promise<void> {
+  await deleteDoc(doc(db, "annexes", annexeId))
+}
