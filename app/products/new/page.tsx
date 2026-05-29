@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import AppLayout from "../../../components/layout/AppLayout"
+import AppLayout from "@/components/layout/AppLayout"
 import RoleGuard from "@/components/guards/RoleGuard"
 import { useLang } from "@/hooks/useLang"
 import { useProducts } from "@/hooks/useProducts"
@@ -12,14 +12,17 @@ function NewProductContent() {
   const { submit } = useProducts()
   const router     = useRouter()
 
-  const [name,      setName]      = useState("")
-  const [quantity,  setQuantity]  = useState(1)
-  const [condition, setCondition] = useState("")
-  const [notes,     setNotes]     = useState("")
+  const [name,       setName]       = useState("")
+  const [quantity,   setQuantity]   = useState(1)
+  const [unite,      setUnite]      = useState("U")
+  const [condition,  setCondition]  = useState("")
+  const [location,   setLocation]   = useState("")
+  const [lotNumber,  setLotNumber]  = useState("")
+  const [notes,      setNotes]      = useState("")
   const [submitting, setSubmitting] = useState(false)
-  const [error,     setError]     = useState("")
+  const [error,      setError]      = useState("")
 
-  const inputStyle = {
+  const inputStyle: React.CSSProperties = {
     background:   "var(--input-bg)",
     border:       "0.5px solid var(--input-border)",
     borderRadius: 8,
@@ -31,10 +34,10 @@ function NewProductContent() {
     width:        "100%",
   }
 
-  const labelStyle = {
+  const labelStyle: React.CSSProperties = {
     fontSize:      11,
     color:         "var(--text-sub)",
-    textTransform: "uppercase" as const,
+    textTransform: "uppercase",
     letterSpacing: "0.07em",
     fontWeight:    500,
     marginBottom:  6,
@@ -50,7 +53,10 @@ function NewProductContent() {
       await submit({
         name:      name.trim(),
         quantity,
+        unite,
         condition: condition.trim(),
+        location:  location.trim(),
+        lotNumber: lotNumber.trim(),
         notes:     notes.trim(),
         photoURLs: [],
       })
@@ -62,22 +68,14 @@ function NewProductContent() {
   }
 
   return (
-    <div style={{ maxWidth: 560 }}>
-
-      {/* Back */}
+    <div style={{ maxWidth: 580 }}>
       <button
         onClick={() => router.back()}
         style={{
-          background:   "none",
-          border:       "none",
-          color:        "var(--text-muted)",
-          fontSize:     12,
-          cursor:       "pointer",
-          padding:      "0 0 20px",
-          fontFamily:   "inherit",
-          display:      "flex",
-          alignItems:   "center",
-          gap:          6,
+          background: "none", border: "none",
+          color: "var(--text-muted)", fontSize: 12,
+          cursor: "pointer", padding: "0 0 20px",
+          fontFamily: "inherit",
         }}
       >
         ← {t.common.back}
@@ -87,12 +85,12 @@ function NewProductContent() {
         background:   "var(--card)",
         border:       "0.5px solid var(--border)",
         borderRadius: 12,
-        padding:      "28px 28px",
+        padding:      "28px",
       }}>
         <div style={{
-          fontSize:   16,
-          fontWeight: 600,
-          color:      "var(--text)",
+          fontSize:     16,
+          fontWeight:   600,
+          color:        "var(--text)",
           marginBottom: 24,
         }}>
           {t.products.new}
@@ -100,8 +98,9 @@ function NewProductContent() {
 
         <form
           onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: 18 }}
+          style={{ display: "flex", flexDirection: "column", gap: 16 }}
         >
+
           {/* Name */}
           <div>
             <label style={labelStyle}>{t.products.name}</label>
@@ -115,18 +114,73 @@ function NewProductContent() {
             />
           </div>
 
-          {/* Quantity */}
-          <div>
-            <label style={labelStyle}>{t.products.quantity}</label>
-            <input
-              type="number"
-              min={1}
-              value={quantity}
-              onChange={e => setQuantity(Number(e.target.value))}
-              style={inputStyle}
-              onFocus={e => e.target.style.borderColor = "var(--border-focus)"}
-              onBlur={e  => e.target.style.borderColor = "var(--input-border)"}
-            />
+          {/* Quantity + Unite */}
+          <div style={{
+            display:             "grid",
+            gridTemplateColumns: "1fr 140px",
+            gap:                 12,
+          }}>
+            <div>
+              <label style={labelStyle}>{t.products.quantity}</label>
+              <input
+                type="number"
+                min={1}
+                value={quantity}
+                onChange={e => setQuantity(Number(e.target.value))}
+                style={inputStyle}
+                onFocus={e => e.target.style.borderColor = "var(--border-focus)"}
+                onBlur={e  => e.target.style.borderColor = "var(--input-border)"}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Unité</label>
+              <select
+                value={unite}
+                onChange={e => setUnite(e.target.value)}
+                style={{ ...inputStyle, appearance: "none" as any }}
+              >
+                <option value="U">U — Unité</option>
+                <option value="m">m — Mètre</option>
+                <option value="ml">ml — Mètre linéaire</option>
+                <option value="m2">m² — Mètre carré</option>
+                <option value="kg">kg — Kilogramme</option>
+                <option value="L">L — Litre</option>
+                <option value="F">F — Forfait</option>
+                <option value="boite">Boîte</option>
+                <option value="rouleau">Rouleau</option>
+                <option value="lot">Lot</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Lot + Location */}
+          <div style={{
+            display:             "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap:                 12,
+          }}>
+            <div>
+              <label style={labelStyle}>N° Lot / Référence</label>
+              <input
+                value={lotNumber}
+                onChange={e => setLotNumber(e.target.value)}
+                placeholder="Ex: Lot 3, REF-2024..."
+                style={inputStyle}
+                onFocus={e => e.target.style.borderColor = "var(--border-focus)"}
+                onBlur={e  => e.target.style.borderColor = "var(--input-border)"}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Emplacement / Zone</label>
+              <input
+                value={location}
+                onChange={e => setLocation(e.target.value)}
+                placeholder="Ex: Bâtiment A, Zone Nord..."
+                style={inputStyle}
+                onFocus={e => e.target.style.borderColor = "var(--border-focus)"}
+                onBlur={e  => e.target.style.borderColor = "var(--input-border)"}
+              />
+            </div>
           </div>
 
           {/* Condition */}
@@ -135,16 +189,14 @@ function NewProductContent() {
             <select
               value={condition}
               onChange={e => setCondition(e.target.value)}
-              style={{
-                ...inputStyle,
-                appearance: "none",
-              }}
+              style={{ ...inputStyle, appearance: "none" as any }}
             >
               <option value="">— Sélectionner —</option>
               <option value="Neuf">Neuf / New</option>
               <option value="Bon état">Bon état / Good</option>
               <option value="Usé">Usé / Used</option>
               <option value="Endommagé">Endommagé / Damaged</option>
+              <option value="À vérifier">À vérifier / To check</option>
             </select>
           </div>
 
@@ -154,7 +206,7 @@ function NewProductContent() {
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="Notes additionnelles..."
+              placeholder="Notes additionnelles, observations..."
               rows={3}
               style={{
                 ...inputStyle,

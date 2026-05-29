@@ -1,45 +1,41 @@
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage"
-import { storage } from "./firebase"
+const CLOUD_NAME    = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!
+const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
 
-export async function uploadProductPhoto(
-  adminId: string,
-  productId: string,
-  file: File
-): Promise<string> {
-  const path = `products/${adminId}/${productId}/${Date.now()}_${file.name}`
-  const r = ref(storage, path)
-  await uploadBytes(r, file)
-  return getDownloadURL(r)
+async function uploadToCloudinary(file: File, folder: string): Promise<string> {
+  const formData = new FormData()
+  formData.append("file", file)
+  formData.append("upload_preset", UPLOAD_PRESET)
+  formData.append("folder", folder)
+
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+    { method: "POST", body: formData }
+  )
+  if (!res.ok) throw new Error("Upload failed")
+  const data = await res.json()
+  return data.secure_url
 }
 
 export async function uploadMessagePhoto(
-  adminId: string,
+  adminId:   string,
   messageId: string,
-  file: File
+  file:      File
 ): Promise<string> {
-  const path = `messages/${adminId}/${messageId}/${Date.now()}_${file.name}`
-  const r = ref(storage, path)
-  await uploadBytes(r, file)
-  return getDownloadURL(r)
+  return uploadToCloudinary(file, `messages/${adminId}`)
+}
+
+export async function uploadProductPhoto(
+  adminId:   string,
+  productId: string,
+  file:      File
+): Promise<string> {
+  return uploadToCloudinary(file, `products/${adminId}`)
 }
 
 export async function uploadAvatar(uid: string, file: File): Promise<string> {
-  const path = `avatars/${uid}/${Date.now()}_${file.name}`
-  const r = ref(storage, path)
-  await uploadBytes(r, file)
-  return getDownloadURL(r)
+  return uploadToCloudinary(file, `avatars/${uid}`)
 }
 
-export async function deleteFile(url: string): Promise<void> {
-  try {
-    const r = ref(storage, url)
-    await deleteObject(r)
-  } catch {
-    // File already deleted or not found — ignore
-  }
+export async function deleteFile(_url: string): Promise<void> {
+  // Cloudinary deletion requires server-side — skipped
 }

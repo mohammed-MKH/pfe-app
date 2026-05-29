@@ -1,14 +1,20 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { getProductsByUser, getProductsByAdmin, setProduct, updateProduct } from "@/lib/firestore"
+import {
+  getProductsByUser,
+  getProductsByAdmin,
+  setProduct,
+  updateProduct,
+  deleteProduct,
+} from "@/lib/firestore"
 import type { Product, ProductStatus } from "@/types"
 import { useAuth } from "@/hooks/useAuth"
 
 export function useProducts() {
-  const { appUser } = useAuth()
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading,  setLoading]  = useState(true)
+  const { appUser }                         = useAuth()
+  const [products, setProducts]             = useState<Product[]>([])
+  const [loading,  setLoading]              = useState(true)
 
   useEffect(() => {
     if (!appUser) return
@@ -33,7 +39,10 @@ export function useProducts() {
   async function submit(params: {
     name:      string
     quantity:  number
+    unite:     string
     condition: string
+    location:  string
+    lotNumber: string
     notes:     string
     photoURLs: string[]
   }): Promise<string> {
@@ -46,7 +55,10 @@ export function useProducts() {
       submittedByName: appUser.displayName,
       name:            params.name,
       quantity:        params.quantity,
+      unite:           params.unite,
       condition:       params.condition,
+      location:        params.location,
+      lotNumber:       params.lotNumber,
       notes:           params.notes,
       photoURLs:       params.photoURLs,
       status:          "pending",
@@ -71,12 +83,30 @@ export function useProducts() {
       managerComment: params.managerComment,
       reviewedBy:     params.reviewedBy,
     })
-    setProducts(prev => prev.map(p =>
-      p.productId === params.productId
-        ? { ...p, ...params, updatedAt: Date.now() }
-        : p
-    ))
+    setProducts(prev =>
+      prev.map(p =>
+        p.productId === params.productId
+          ? { ...p, ...params, updatedAt: Date.now() }
+          : p
+      )
+    )
   }
 
-  return { products, loading, submit, review }
+  async function remove(productId: string) {
+    await deleteProduct(productId)
+    setProducts(prev => prev.filter(p => p.productId !== productId))
+  }
+
+  async function edit(productId: string, data: Partial<Product>) {
+    await updateProduct(productId, data)
+    setProducts(prev =>
+      prev.map(p =>
+        p.productId === productId
+          ? { ...p, ...data, updatedAt: Date.now() }
+          : p
+      )
+    )
+  }
+
+  return { products, loading, submit, review, remove, edit }
 }

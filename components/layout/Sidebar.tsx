@@ -16,27 +16,27 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onClose }: SidebarProps) {
-  const { appUser, logout } = useAuth()
-  const { t }               = useLang()
-  const pathname            = usePathname()
-  const router              = useRouter()
+  const { appUser, logout, switchRole } = useAuth()
+  const { t }                           = useLang()
+  const pathname                        = usePathname()
+  const router                          = useRouter()
 
   if (!appUser) return null
 
   const navItems: NavItem[] = [
-    { label: t.nav.dashboard, path: "/dashboard",    icon: "⊞", roles: ["worker", "manager"] },
-    { label: t.nav.messages,  path: "/messages",     icon: "◉", roles: ["worker", "manager", "admin"] },
-    { label: t.nav.products,  path: "/products",     icon: "▦", roles: ["worker"] },
-    { label: t.nav.annexe,    path: "/annexe",       icon: "≡", roles: ["manager"] },
-    { label: t.nav.manager,   path: "/manager",      icon: "✓", roles: ["manager"] },
-    { label: t.nav.team,      path: "/manager/team", icon: "◈", roles: ["manager"] },
-    { label: t.nav.admin,     path: "/admin",        icon: "⊛", roles: ["admin"] },
-    { label: t.nav.users,     path: "/admin/users",  icon: "◎", roles: ["admin"] },
-    { label: t.nav.annexe,    path: "/admin/annexe", icon: "≡", roles: ["admin"] },
-    { label: t.nav.stats,     path: "/admin/stats",  icon: "◫", roles: ["admin"] },
-    { label: t.nav.superadmin, path: "/superadmin",  icon: "◈", roles: ["superadmin"] },
-    { label: t.nav.aiTools,   path: "/ai-tools",     icon: "◬", roles: ["worker", "manager", "admin", "superadmin"] },
-    { label: t.nav.settings,  path: "/settings",     icon: "⊙", roles: ["worker", "manager", "admin", "superadmin"] },
+    { label: t.nav.dashboard,  path: "/dashboard",    icon: "⊞", roles: ["worker", "manager"] },
+    { label: t.nav.messages,   path: "/messages",     icon: "◉", roles: ["worker", "manager", "admin"] },
+    { label: t.nav.products,   path: "/products",     icon: "▦", roles: ["worker"] },
+    { label: t.nav.annexe,     path: "/annexe",       icon: "≡", roles: ["manager"] },
+    { label: t.nav.manager,    path: "/manager",      icon: "✓", roles: ["manager"] },
+    { label: t.nav.team,       path: "/manager/team", icon: "◈", roles: ["manager"] },
+    { label: t.nav.admin,      path: "/admin",        icon: "⊛", roles: ["admin"] },
+    { label: t.nav.users,      path: "/admin/users",  icon: "◎", roles: ["admin"] },
+    { label: t.nav.annexe,     path: "/admin/annexe", icon: "≡", roles: ["admin"] },
+    { label: t.nav.stats,      path: "/admin/stats",  icon: "◫", roles: ["admin"] },
+    { label: t.nav.superadmin, path: "/superadmin",   icon: "◈", roles: ["superadmin"] },
+    { label: t.nav.aiTools,    path: "/ai-tools",     icon: "◬", roles: ["worker", "manager", "admin", "superadmin"] },
+    { label: t.nav.settings,   path: "/settings",     icon: "⊙", roles: ["worker", "manager", "admin", "superadmin"] },
   ]
 
   const visible = navItems.filter(item => item.roles.includes(appUser.role))
@@ -49,6 +49,21 @@ export default function Sidebar({ onClose }: SidebarProps) {
   function navigate(path: string) {
     router.push(path)
     onClose?.()
+  }
+
+  const btnBase: React.CSSProperties = {
+    display:     "flex",
+    alignItems:  "center",
+    gap:         10,
+    padding:     "8px 10px",
+    borderRadius: 7,
+    border:      "none",
+    cursor:      "pointer",
+    fontSize:    12,
+    fontFamily:  "inherit",
+    width:       "100%",
+    textAlign:   "left",
+    transition:  "background 0.1s, color 0.1s",
   }
 
   return (
@@ -64,10 +79,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       {/* LOGO */}
       <div style={{
-        padding:      "20px 18px 16px",
-        borderBottom: "0.5px solid var(--sidebar-border)",
-        display:      "flex",
-        alignItems:   "center",
+        padding:        "20px 18px 16px",
+        borderBottom:   "0.5px solid var(--sidebar-border)",
+        display:        "flex",
+        alignItems:     "center",
         justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -100,18 +115,18 @@ export default function Sidebar({ onClose }: SidebarProps) {
           </div>
         </div>
 
-        {/* Close button — mobile only */}
+        {/* Close button — mobile */}
         {onClose && (
           <button
             onClick={onClose}
             style={{
-              background:   "none",
-              border:       "none",
-              color:        "var(--sidebar-text)",
-              cursor:       "pointer",
-              fontSize:     18,
-              padding:      "4px",
-              lineHeight:   1,
+              background: "none",
+              border:     "none",
+              color:      "var(--sidebar-text)",
+              cursor:     "pointer",
+              fontSize:   18,
+              padding:    "4px",
+              lineHeight: 1,
             }}
           >
             ✕
@@ -129,30 +144,21 @@ export default function Sidebar({ onClose }: SidebarProps) {
         overflowY:     "auto",
       }}>
         {visible.map(item => {
-          const isActive = pathname === item.path ||
-            (item.path !== "/" && pathname.startsWith(item.path) &&
-             item.path.split("/").length >= pathname.split("/").length)
+          const isActive =
+            pathname === item.path ||
+            (item.path !== "/" &&
+              pathname.startsWith(item.path) &&
+              item.path.split("/").length >= pathname.split("/").length)
 
           return (
             <button
               key={item.path + item.label}
               onClick={() => navigate(item.path)}
               style={{
-                display:     "flex",
-                alignItems:  "center",
-                gap:         10,
-                padding:     "8px 10px",
-                borderRadius: 7,
-                border:      "none",
-                background:  isActive ? "var(--sidebar-active-bg)" : "transparent",
-                color:       isActive ? "var(--sidebar-active-text)" : "var(--sidebar-text)",
-                cursor:      "pointer",
-                fontSize:    12,
-                fontWeight:  isActive ? 500 : 400,
-                fontFamily:  "inherit",
-                width:       "100%",
-                textAlign:   "left",
-                transition:  "background 0.1s, color 0.1s",
+                ...btnBase,
+                background: isActive ? "var(--sidebar-active-bg)" : "transparent",
+                color:      isActive ? "var(--sidebar-active-text)" : "var(--sidebar-text)",
+                fontWeight: isActive ? 500 : 400,
               }}
               onMouseEnter={e => {
                 if (!isActive) {
@@ -178,14 +184,41 @@ export default function Sidebar({ onClose }: SidebarProps) {
         })}
       </nav>
 
-      {/* USER + LOGOUT */}
+      {/* BOTTOM SECTION */}
       <div style={{
-        padding:       "12px 8px",
+        padding:       "10px 8px",
         borderTop:     "0.5px solid var(--sidebar-border)",
         display:       "flex",
         flexDirection: "column",
-        gap:           4,
+        gap:           3,
       }}>
+
+        {/* Role switcher — admin can switch to manager view and back */}
+        {(appUser.role === "admin" || appUser.role === "manager") && (
+          <button
+            onClick={() => {
+              const newRole = appUser.role === "admin" ? "manager" : "admin"
+              switchRole(newRole as any)
+              navigate(newRole === "admin" ? "/admin" : "/manager")
+            }}
+            style={{
+              ...btnBase,
+              background: "var(--accent-bg)",
+              color:      "var(--accent)",
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity = "0.8"}
+            onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+          >
+            <span style={{ fontSize: 14, width: 18, textAlign: "center" }}>⇄</span>
+            <span>
+              {appUser.role === "admin"
+                ? "Vue Manager"
+                : "Vue Admin"}
+            </span>
+          </button>
+        )}
+
+        {/* User info */}
         <div style={{
           display:    "flex",
           alignItems: "center",
@@ -231,22 +264,13 @@ export default function Sidebar({ onClose }: SidebarProps) {
           </div>
         </div>
 
+        {/* Logout */}
         <button
           onClick={handleLogout}
           style={{
-            display:     "flex",
-            alignItems:  "center",
-            gap:         10,
-            padding:     "8px 10px",
-            borderRadius: 7,
-            border:      "none",
-            background:  "transparent",
-            color:       "var(--sidebar-text)",
-            cursor:      "pointer",
-            fontSize:    12,
-            fontFamily:  "inherit",
-            width:       "100%",
-            textAlign:   "left",
+            ...btnBase,
+            background: "transparent",
+            color:      "var(--sidebar-text)",
           }}
           onMouseEnter={e => {
             e.currentTarget.style.background = "var(--reject-bg)"

@@ -14,8 +14,8 @@ import {
   type User,
 } from "firebase/auth"
 import { auth } from "@/lib/firebase"
-import { getUser } from "@/lib/firestore"
-import type { AppUser } from "@/types"
+import { getUser, updateUser } from "@/lib/firestore"
+import type { AppUser, Role } from "@/types"
 
 interface AuthContextValue {
   firebaseUser: User | null
@@ -24,6 +24,8 @@ interface AuthContextValue {
   error:        string | null
   login:        (email: string, password: string) => Promise<void>
   logout:       () => Promise<void>
+  switchRole:   (newRole: Role) => Promise<void>
+  clearError:   () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -35,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [error,        setError]        = useState<string | null>(null)
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
+    const unsub = onAuthStateChanged(auth, async user => {
       setFirebaseUser(user)
       if (user) {
         try {
@@ -69,9 +71,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFirebaseUser(null)
   }
 
+  // Switch role in-app without logging out
+  // Only works for users who have both admin + manager access
+  async function switchRole(newRole: Role) {
+    if (!appUser) return
+    await updateUser(appUser.uid, { role: newRole })
+    setAppUser(prev => prev ? { ...prev, role: newRole } : prev)
+  }
+
+  function clearError() {
+    setError(null)
+  }
+
   return (
     <AuthContext.Provider
-      value={{ firebaseUser, appUser, loading, error, login, logout }}
+      value={{
+        firebaseUser,
+        appUser,
+        loading,
+        error,
+        login,
+        logout,
+        switchRole,
+        clearError,
+      }}
     >
       {children}
     </AuthContext.Provider>

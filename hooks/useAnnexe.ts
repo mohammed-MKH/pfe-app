@@ -8,34 +8,39 @@ import {
   setAnnexeRow,
   updateAnnexeRow,
   deleteAnnexeRow,
+  deleteAnnexe,
 } from "@/lib/firestore"
 import type { Annexe, AnnexeRow } from "@/types"
 import { useAuth } from "@/hooks/useAuth"
 
 export function useAnnexe(annexeId: string | null) {
-  const { appUser } = useAuth()
-  const [annexes, setAnnexes] = useState<Annexe[]>([])
-  const [rows,    setRows]    = useState<AnnexeRow[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving,  setSaving]  = useState(false)
+  const { appUser }                         = useAuth()
+  const [annexes, setAnnexes]               = useState<Annexe[]>([])
+  const [rows,    setRows]                  = useState<AnnexeRow[]>([])
+  const [loading, setLoading]               = useState(true)
+  const [saving,  setSaving]                = useState(false)
 
   // Load annexes list
   useEffect(() => {
     if (!appUser) return
-    getAnnexesByAdmin(appUser.adminId).then(data => {
-      setAnnexes(data)
-      setLoading(false)
-    })
+    getAnnexesByAdmin(appUser.adminId)
+      .then(data => {
+        setAnnexes(data)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [appUser])
 
   // Load rows when annexeId changes
   useEffect(() => {
     if (!appUser || !annexeId) return
     setLoading(true)
-    getAnnexeRows(annexeId, appUser.adminId).then(data => {
-      setRows(data)
-      setLoading(false)
-    })
+    getAnnexeRows(annexeId, appUser.adminId)
+      .then(data => {
+        setRows(data)
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
   }, [appUser, annexeId])
 
   async function createAnnexe(title: string): Promise<string> {
@@ -54,6 +59,12 @@ export function useAnnexe(annexeId: string | null) {
     await setAnnexe(annexe)
     setAnnexes(prev => [...prev, annexe])
     return id
+  }
+
+  async function removeAnnexe(annexeId: string): Promise<void> {
+    await deleteAnnexe(annexeId)
+    setAnnexes(prev => prev.filter(a => a.annexeId !== annexeId))
+    setRows([])
   }
 
   async function saveRow(row: AnnexeRow) {
@@ -87,9 +98,11 @@ export function useAnnexe(annexeId: string | null) {
     loading,
     saving,
     createAnnexe,
+    removeAnnexe,
     saveRow,
     removeRow,
     importRows,
     setRows,
+    setAnnexes,
   }
 }

@@ -12,7 +12,11 @@ import {
   onSnapshot,
 } from "firebase/firestore"
 import { db } from "./firebase"
-import type { AppUser, Admin, Product, AnnexeRow, Annexe, Message } from "@/types"
+import type {
+  AppUser, Admin, Product, AnnexeRow, Annexe, Message
+} from "@/types"
+
+// ── USERS ─────────────────────────────────────────────────────────────────
 
 export async function getUser(uid: string): Promise<AppUser | null> {
   const snap = await getDoc(doc(db, "users", uid))
@@ -23,15 +27,23 @@ export async function setUser(user: AppUser): Promise<void> {
   await setDoc(doc(db, "users", user.uid), user)
 }
 
-export async function updateUser(uid: string, data: Partial<AppUser>): Promise<void> {
+export async function updateUser(
+  uid: string,
+  data: Partial<AppUser>
+): Promise<void> {
   await updateDoc(doc(db, "users", uid), data)
 }
 
 export async function getUsersByAdmin(adminId: string): Promise<AppUser[]> {
-  const q = query(collection(db, "users"), where("adminId", "==", adminId))
+  const q = query(
+    collection(db, "users"),
+    where("adminId", "==", adminId)
+  )
   const snap = await getDocs(q)
   return snap.docs.map(d => d.data() as AppUser)
 }
+
+// ── ADMINS ────────────────────────────────────────────────────────────────
 
 export async function getAdmin(adminId: string): Promise<Admin | null> {
   const snap = await getDoc(doc(db, "admins", adminId))
@@ -47,9 +59,14 @@ export async function setAdmin(admin: Admin): Promise<void> {
   await setDoc(doc(db, "admins", admin.adminId), admin)
 }
 
-export async function updateAdmin(adminId: string, data: Partial<Admin>): Promise<void> {
+export async function updateAdmin(
+  adminId: string,
+  data: Partial<Admin>
+): Promise<void> {
   await updateDoc(doc(db, "admins", adminId), data)
 }
+
+// ── PRODUCTS ──────────────────────────────────────────────────────────────
 
 export async function getProductsByAdmin(adminId: string): Promise<Product[]> {
   const q = query(
@@ -75,12 +92,21 @@ export async function setProduct(product: Product): Promise<void> {
   await setDoc(doc(db, "products", product.productId), product)
 }
 
-export async function updateProduct(productId: string, data: Partial<Product>): Promise<void> {
+export async function updateProduct(
+  productId: string,
+  data: Partial<Product>
+): Promise<void> {
   await updateDoc(doc(db, "products", productId), {
     ...data,
     updatedAt: Date.now(),
   })
 }
+
+export async function deleteProduct(productId: string): Promise<void> {
+  await deleteDoc(doc(db, "products", productId))
+}
+
+// ── MESSAGES ─────────────────────────────────────────────────────────────
 
 export function subscribeMessages(
   adminId: string,
@@ -100,6 +126,22 @@ export async function sendMessage(message: Message): Promise<void> {
   await setDoc(doc(db, "messages", message.messageId), message)
 }
 
+export async function deleteMessage(messageId: string): Promise<void> {
+  await deleteDoc(doc(db, "messages", messageId))
+}
+
+export async function editMessage(
+  messageId: string,
+  text: string
+): Promise<void> {
+  await updateDoc(doc(db, "messages", messageId), {
+    text,
+    edited: true,
+  })
+}
+
+// ── ANNEXE ────────────────────────────────────────────────────────────────
+
 export async function getAnnexesByAdmin(adminId: string): Promise<Annexe[]> {
   const q = query(
     collection(db, "annexes"),
@@ -107,6 +149,20 @@ export async function getAnnexesByAdmin(adminId: string): Promise<Annexe[]> {
   )
   const snap = await getDocs(q)
   return snap.docs.map(d => d.data() as Annexe)
+}
+
+export async function setAnnexe(annexe: Annexe): Promise<void> {
+  await setDoc(doc(db, "annexes", annexe.annexeId), annexe)
+}
+
+export async function deleteAnnexe(annexeId: string): Promise<void> {
+  await deleteDoc(doc(db, "annexes", annexeId))
+  const q = query(
+    collection(db, "annexeRows"),
+    where("annexeId", "==", annexeId)
+  )
+  const snap = await getDocs(q)
+  await Promise.all(snap.docs.map(d => deleteDoc(d.ref)))
 }
 
 export async function getAnnexeRows(
@@ -141,10 +197,11 @@ export async function deleteAnnexeRow(rowId: string): Promise<void> {
   await deleteDoc(doc(db, "annexeRows", rowId))
 }
 
-export async function setAnnexe(annexe: Annexe): Promise<void> {
-  await setDoc(doc(db, "annexes", annexe.annexeId), annexe)
-}
+// ── ROLE SWITCH ───────────────────────────────────────────────────────────
 
-export async function deleteAnnexe(annexeId: string): Promise<void> {
-  await deleteDoc(doc(db, "annexes", annexeId))
+export async function switchUserRole(
+  uid: string,
+  newRole: "admin" | "manager" | "worker"
+): Promise<void> {
+  await updateDoc(doc(db, "users", uid), { role: newRole })
 }
