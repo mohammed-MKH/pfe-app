@@ -1,16 +1,40 @@
-import { ProductStatus } from "../../app/types/product";
+import { ProductStatus } from "@/types"
 
 export default function StatusBadge({ status }: { status: ProductStatus }) {
   const styles = {
-    pending: "bg-yellow-500/20 text-yellow-300",
-    approved: "bg-green-500/20 text-green-300",
-    rejected: "bg-red-500/20 text-red-300",
-    correction: "bg-blue-500/20 text-blue-300",
-  };
+    pending: {
+      bg:     "var(--pending-bg)",
+      text:   "var(--pending-text)",
+      border: "var(--pending-border)",
+      label:  "En attente",
+    },
+    approved: {
+      bg:     "var(--ok-bg)",
+      text:   "var(--ok-text)",
+      border: "var(--ok-border)",
+      label:  "Approuvé",
+    },
+    rejected: {
+      bg:     "var(--reject-bg)",
+      text:   "var(--reject-text)",
+      border: "var(--reject-border)",
+      label:  "Rejeté",
+    },
+  }[status]
 
   return (
-    <span className={`px-3 py-1 rounded-full text-sm ${styles[status]}`}>
-      {status}
+    <span style={{
+      background:   styles.bg,
+      color:        styles.text,
+      border:       `0.5px solid ${styles.border}`,
+      borderRadius: 4,
+      padding:      "2px 8px",
+      fontSize:     10,
+      fontWeight:   500,
+      display:      "inline-flex",
+      alignItems:   "center",
+    }}>
+      {styles.label}
     </span>
-  );
+  )
 }
