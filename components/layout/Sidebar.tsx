@@ -24,19 +24,21 @@ export default function Sidebar({ onClose }: SidebarProps) {
   if (!appUser) return null
 
   const navItems: NavItem[] = [
-    { label: t.nav.dashboard,  path: "/dashboard",    icon: "⊞", roles: ["worker", "manager"] },
-    { label: t.nav.messages,   path: "/messages",     icon: "◉", roles: ["worker", "manager", "admin"] },
-    { label: t.nav.products,   path: "/products",     icon: "▦", roles: ["worker"] },
-    { label: t.nav.annexe,     path: "/annexe",       icon: "≡", roles: ["manager"] },
-    { label: t.nav.manager,    path: "/manager",      icon: "✓", roles: ["manager"] },
-    { label: t.nav.team,       path: "/manager/team", icon: "◈", roles: ["manager"] },
-    { label: t.nav.admin,      path: "/admin",        icon: "⊛", roles: ["admin"] },
-    { label: t.nav.users,      path: "/admin/users",  icon: "◎", roles: ["admin"] },
-    { label: t.nav.annexe,     path: "/admin/annexe", icon: "≡", roles: ["admin"] },
-    { label: t.nav.stats,      path: "/admin/stats",  icon: "◫", roles: ["admin"] },
-    { label: t.nav.superadmin, path: "/superadmin",   icon: "◈", roles: ["superadmin"] },
-    { label: t.nav.aiTools,    path: "/ai-tools",     icon: "◬", roles: ["worker", "manager", "admin", "superadmin"] },
-    { label: t.nav.settings,   path: "/settings",     icon: "⊙", roles: ["worker", "manager", "admin", "superadmin"] },
+    { label: t.nav.dashboard,   path: "/dashboard",         icon: "⊞", roles: ["worker", "manager"] },
+    { label: t.nav.messages,    path: "/messages",          icon: "◉", roles: ["worker", "manager", "admin"] },
+    { label: t.nav.products,    path: "/products",          icon: "▦", roles: ["worker"] },
+    { label: "Mes demandes",    path: "/worker/requests",   icon: "📋", roles: ["worker"] },
+    { label: t.nav.annexe,      path: "/annexe",            icon: "≡", roles: ["manager"] },
+    { label: t.nav.manager,     path: "/manager",           icon: "✓", roles: ["manager"] },
+    { label: "Demandes",        path: "/manager/requests",  icon: "📋", roles: ["manager"] },
+    { label: t.nav.team,        path: "/manager/team",      icon: "◈", roles: ["manager"] },
+    { label: t.nav.admin,       path: "/admin",             icon: "⊛", roles: ["admin"] },
+    { label: t.nav.users,       path: "/admin/users",       icon: "◎", roles: ["admin"] },
+    { label: t.nav.annexe,      path: "/admin/annexe",      icon: "≡", roles: ["admin"] },
+    { label: t.nav.stats,       path: "/admin/stats",       icon: "◫", roles: ["admin"] },
+    { label: t.nav.superadmin,  path: "/superadmin",        icon: "◈", roles: ["superadmin"] },
+    { label: t.nav.aiTools,     path: "/ai-tools",          icon: "◬", roles: ["worker", "manager", "admin", "superadmin"] },
+    { label: t.nav.settings,    path: "/settings",          icon: "⊙", roles: ["worker", "manager", "admin", "superadmin"] },
   ]
 
   const visible = navItems.filter(item => item.roles.includes(appUser.role))
@@ -52,18 +54,18 @@ export default function Sidebar({ onClose }: SidebarProps) {
   }
 
   const btnBase: React.CSSProperties = {
-    display:     "flex",
-    alignItems:  "center",
-    gap:         10,
-    padding:     "8px 10px",
+    display:      "flex",
+    alignItems:   "center",
+    gap:          10,
+    padding:      "8px 10px",
     borderRadius: 7,
-    border:      "none",
-    cursor:      "pointer",
-    fontSize:    12,
-    fontFamily:  "inherit",
-    width:       "100%",
-    textAlign:   "left",
-    transition:  "background 0.1s, color 0.1s",
+    border:       "none",
+    cursor:       "pointer",
+    fontSize:     12,
+    fontFamily:   "inherit",
+    width:        "100%",
+    textAlign:    "left",
+    transition:   "background 0.1s, color 0.1s",
   }
 
   return (
@@ -101,7 +103,11 @@ export default function Sidebar({ onClose }: SidebarProps) {
             ⚙
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>
+            <div style={{
+              fontSize:   12,
+              fontWeight: 600,
+              color:      "var(--text)",
+            }}>
               PFE App
             </div>
             <div style={{
@@ -115,7 +121,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           </div>
         </div>
 
-        {/* Close button — mobile */}
+        {/* Close button — mobile only */}
         {onClose && (
           <button
             onClick={onClose}
@@ -173,10 +179,19 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 }
               }}
             >
-              <span style={{ fontSize: 14, width: 18, textAlign: "center", flexShrink: 0 }}>
+              <span style={{
+                fontSize:   14,
+                width:      18,
+                textAlign:  "center",
+                flexShrink: 0,
+              }}>
                 {item.icon}
               </span>
-              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span style={{
+                whiteSpace:   "nowrap",
+                overflow:     "hidden",
+                textOverflow: "ellipsis",
+              }}>
                 {item.label}
               </span>
             </button>
@@ -211,9 +226,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           >
             <span style={{ fontSize: 14, width: 18, textAlign: "center" }}>⇄</span>
             <span>
-              {appUser.role === "admin"
-                ? "Vue Manager"
-                : "Vue Admin"}
+              {appUser.role === "admin" ? "Vue Manager" : "Vue Admin"}
             </span>
           </button>
         )}

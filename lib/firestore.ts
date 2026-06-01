@@ -205,3 +205,179 @@ export async function switchUserRole(
 ): Promise<void> {
   await updateDoc(doc(db, "users", uid), { role: newRole })
 }
+
+// ── MATERIAL REQUESTS ─────────────────────────────────────────────────────
+
+import type { MaterialRequest } from "@/types"
+import type { Vehicle, VehicleTrip, VehicleDemand } from "@/types"
+import type { Conversation } from "@/types"
+
+export async function getRequestsByAdmin(adminId: string): Promise<MaterialRequest[]> {
+  const q = query(
+    collection(db, "requests"),
+    where("adminId", "==", adminId),
+    orderBy("createdAt", "desc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(d => d.data() as MaterialRequest)
+}
+
+export async function getRequestsByWorker(uid: string): Promise<MaterialRequest[]> {
+  const q = query(
+    collection(db, "requests"),
+    where("assignedTo", "==", uid),
+    orderBy("createdAt", "desc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(d => d.data() as MaterialRequest)
+}
+
+export async function setRequest(req: MaterialRequest): Promise<void> {
+  await setDoc(doc(db, "requests", req.requestId), req)
+}
+
+export async function updateRequest(
+  requestId: string,
+  data: Partial<MaterialRequest>
+): Promise<void> {
+  await updateDoc(doc(db, "requests", requestId), {
+    ...data, updatedAt: Date.now(),
+  })
+}
+
+export async function deleteRequest(requestId: string): Promise<void> {
+  await deleteDoc(doc(db, "requests", requestId))
+}
+
+// ── VEHICLES ──────────────────────────────────────────────────────────────
+
+export async function getVehiclesByAdmin(adminId: string): Promise<Vehicle[]> {
+  const q = query(collection(db, "vehicles"), where("adminId", "==", adminId))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => d.data() as Vehicle)
+}
+
+export async function setVehicle(vehicle: Vehicle): Promise<void> {
+  await setDoc(doc(db, "vehicles", vehicle.vehicleId), vehicle)
+}
+
+export async function updateVehicle(
+  vehicleId: string,
+  data: Partial<Vehicle>
+): Promise<void> {
+  await updateDoc(doc(db, "vehicles", vehicleId), data)
+}
+
+export async function deleteVehicle(vehicleId: string): Promise<void> {
+  await deleteDoc(doc(db, "vehicles", vehicleId))
+}
+
+export async function getTripsByAdmin(adminId: string): Promise<VehicleTrip[]> {
+  const q = query(
+    collection(db, "vehicleTrips"),
+    where("adminId", "==", adminId),
+    orderBy("createdAt", "desc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(d => d.data() as VehicleTrip)
+}
+
+export async function getTripsByDriver(uid: string): Promise<VehicleTrip[]> {
+  const q = query(
+    collection(db, "vehicleTrips"),
+    where("driverId", "==", uid),
+    orderBy("createdAt", "desc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(d => d.data() as VehicleTrip)
+}
+
+export async function setTrip(trip: VehicleTrip): Promise<void> {
+  await setDoc(doc(db, "vehicleTrips", trip.tripId), trip)
+}
+
+export async function updateTrip(
+  tripId: string,
+  data: Partial<VehicleTrip>
+): Promise<void> {
+  await updateDoc(doc(db, "vehicleTrips", tripId), data)
+}
+
+export async function deleteTrip(tripId: string): Promise<void> {
+  await deleteDoc(doc(db, "vehicleTrips", tripId))
+}
+
+export async function getDemandsByAdmin(adminId: string): Promise<VehicleDemand[]> {
+  const q = query(
+    collection(db, "vehicleDemands"),
+    where("adminId", "==", adminId),
+    orderBy("createdAt", "desc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(d => d.data() as VehicleDemand)
+}
+
+export async function getDemandsByWorker(uid: string): Promise<VehicleDemand[]> {
+  const q = query(
+    collection(db, "vehicleDemands"),
+    where("requestedBy", "==", uid),
+    orderBy("createdAt", "desc")
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(d => d.data() as VehicleDemand)
+}
+
+export async function setDemand(demand: VehicleDemand): Promise<void> {
+  await setDoc(doc(db, "vehicleDemands", demand.demandId), demand)
+}
+
+export async function updateDemand(
+  demandId: string,
+  data: Partial<VehicleDemand>
+): Promise<void> {
+  await updateDoc(doc(db, "vehicleDemands", demandId), data)
+}
+
+// ── CONVERSATIONS ─────────────────────────────────────────────────────────
+
+export async function getConversationsByUser(
+  uid: string,
+  adminId: string
+): Promise<Conversation[]> {
+  const q = query(
+    collection(db, "conversations"),
+    where("adminId", "==", adminId),
+    where("members", "array-contains", uid)
+  )
+  const snap = await getDocs(q)
+  return snap.docs.map(d => d.data() as Conversation)
+}
+
+export async function setConversation(conv: Conversation): Promise<void> {
+  await setDoc(doc(db, "conversations", conv.conversationId), conv)
+}
+
+export async function updateConversation(
+  conversationId: string,
+  data: Partial<Conversation>
+): Promise<void> {
+  await updateDoc(doc(db, "conversations", conversationId), data)
+}
+
+export async function deleteConversation(conversationId: string): Promise<void> {
+  await deleteDoc(doc(db, "conversations", conversationId))
+}
+
+export function subscribeConversationMessages(
+  conversationId: string,
+  callback: (messages: Message[]) => void
+) {
+  const q = query(
+    collection(db, "messages"),
+    where("conversationId", "==", conversationId),
+    orderBy("createdAt", "asc")
+  )
+  return onSnapshot(q, snap => {
+    callback(snap.docs.map(d => d.data() as Message))
+  })
+}
