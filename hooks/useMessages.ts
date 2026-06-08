@@ -1,63 +1,63 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { subscribeMessages, sendMessage } from "@/lib/firestore"
-import { uploadMessagePhoto } from "@/lib/storage"
+import { subscribeConversationMessages, sendMessage } from "@/lib/firestore"
 import type { Message } from "@/types"
 import { useAuth } from "@/hooks/useAuth"
+import { uploadMessagePhoto } from "@/lib/storage"
 
-export function useMessages() {
-  const { appUser } = useAuth()
-  const [messages, setMessages] = useState<Message[]>([])
-  const [loading,  setLoading]  = useState(true)
+export function useMessages(conversationId?: string) {
+  const { appUser }                 = useAuth()
+  const [messages, setMessages]     = useState<Message[]>([])
+  const [loading,  setLoading]      = useState(true)
 
   useEffect(() => {
-    if (!appUser) return
+    if (!appUser || !conversationId) return
     setLoading(true)
-    const unsub = subscribeMessages(appUser.adminId, (msgs) => {
+    const unsub = subscribeConversationMessages(conversationId, msgs => {
       setMessages(msgs)
       setLoading(false)
     })
     return () => unsub()
-  }, [appUser])
+  }, [appUser, conversationId])
 
   async function send(text: string) {
-    if (!appUser || !text.trim()) return
+    if (!appUser || !conversationId) return
     const messageId = `msg_${Date.now()}_${Math.random().toString(36).slice(2)}`
     const msg: Message = {
       messageId,
-      adminId:    appUser.adminId,
-      senderId:   appUser.uid,
-      senderName: appUser.displayName,
-      senderRole: appUser.role,
-      text:       text.trim(),
-      photoURL:   null,
-      type:       "text",
-      createdAt:  Date.now(),
+      adminId:        appUser.adminId,
+      conversationId,
+      senderId:       appUser.uid,
+      senderName:     appUser.displayName,
+      senderRole:     appUser.role,
+      text,
+      photoURL:       null,
+      type:           "text",
+      edited:         false,
+      createdAt:      Date.now(),
     }
     await sendMessage(msg)
   }
 
   async function sendPhoto(file: File) {
-    if (!appUser) return
+    if (!appUser || !conversationId) return
     const messageId = `msg_${Date.now()}_${Math.random().toString(36).slice(2)}`
-    try {
-      const photoURL = await uploadMessagePhoto(appUser.adminId, messageId, file)
-      const msg: Message = {
-        messageId,
-        adminId:    appUser.adminId,
-        senderId:   appUser.uid,
-        senderName: appUser.displayName,
-        senderRole: appUser.role,
-        text:       null,
-        photoURL,
-        type:       "photo",
-        createdAt:  Date.now(),
-      }
-      await sendMessage(msg)
-    } catch {
-      console.error("Photo upload failed")
+    const url = await uploadMessagePhoto(appUser.adminId, messageId, file)
+    const msg: Message = {
+      messageId,
+      adminId:        appUser.adminId,
+      conversationId,
+      senderId:       appUser.uid,
+      senderName:     appUser.displayName,
+      senderRole:     appUser.role,
+      text:           null,
+      photoURL:       url,
+      type:           "photo",
+      edited:         false,
+      createdAt:      Date.now(),
     }
+    await sendMessage(msg)
   }
 
   return { messages, loading, send, sendPhoto }
