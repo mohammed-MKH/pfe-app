@@ -122,16 +122,6 @@ function SettingsContent() {
     width:        "100%",
   }
 
-  const labelStyle: React.CSSProperties = {
-    fontSize:      11,
-    color:         "var(--text-sub)",
-    textTransform: "uppercase",
-    letterSpacing: "0.07em",
-    fontWeight:    500,
-    marginBottom:  6,
-    display:       "block",
-  }
-
   const sectionTitle: React.CSSProperties = {
     fontSize:      11,
     color:         "var(--text-muted)",
@@ -156,7 +146,6 @@ function SettingsContent() {
           alignItems:   "center",
           gap:          20,
         }}>
-          {/* Avatar */}
           <div style={{
             width:          80,
             height:         80,
@@ -172,11 +161,8 @@ function SettingsContent() {
             {avatarLoading ? (
               <div className="spinner" />
             ) : avatarURL ? (
-              <img
-                src={avatarURL}
-                alt="avatar"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
+              <img src={avatarURL} alt="avatar"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
               <span style={{ fontSize: 24, fontWeight: 600, color: "var(--accent)" }}>
                 {appUser.displayName.slice(0, 2).toUpperCase()}
@@ -267,11 +253,8 @@ function SettingsContent() {
               {logoLoading ? (
                 <div className="spinner" />
               ) : logoURL ? (
-                <img
-                  src={logoURL}
-                  alt="logo"
-                  style={{ width: "100%", height: "100%", objectFit: "contain" }}
-                />
+                <img src={logoURL} alt="logo"
+                  style={{ width: "100%", height: "100%", objectFit: "contain" }} />
               ) : (
                 <span style={{ fontSize: 28 }}>🏢</span>
               )}
@@ -345,7 +328,17 @@ function SettingsContent() {
           borderRadius: 12,
           padding:      "20px 24px",
         }}>
-          <label style={labelStyle}>{t.settings.displayName}</label>
+          <label style={{
+            fontSize:      11,
+            color:         "var(--text-sub)",
+            textTransform: "uppercase",
+            letterSpacing: "0.07em",
+            fontWeight:    500,
+            marginBottom:  6,
+            display:       "block",
+          }}>
+            {t.settings.displayName}
+          </label>
           <input
             value={displayName}
             onChange={e => setDisplayName(e.target.value)}
