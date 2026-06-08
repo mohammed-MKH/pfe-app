@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   getConversationsByUser,
   setConversation,
@@ -24,52 +24,50 @@ export function useConversations() {
   const [loading,       setLoading]               = useState(true)
   const [msgLoading,    setMsgLoading]            = useState(false)
 
-  // Load all conversations for current user
-  useEffect(() => {
+  const loadConversations = useCallback(async () => {
     if (!appUser) return
-    async function load() {
-      try {
-        let convs = await getConversationsByUser(appUser!.uid, appUser!.adminId)
+    try {
+      let convs = await getConversationsByUser(appUser.uid, appUser.adminId)
 
-        // Create general group if it does not exist
-        const hasGeneral = convs.find(c => c.type === "general")
-        if (!hasGeneral) {
-          const allUsers = await getUsersByAdmin(appUser!.adminId)
-          const general: Conversation = {
-            conversationId: `conv_general_${appUser!.adminId}`,
-            adminId:        appUser!.adminId,
-            type:           "general",
-            name:           "Groupe général",
-            members:        allUsers.map(u => u.uid),
-            memberNames:    allUsers.map(u => u.displayName),
-            createdBy:      appUser!.uid,
-            createdAt:      Date.now(),
-            lastMessage:    null,
-            lastMessageAt:  null,
-          }
-          await setConversation(general)
-          convs = [general, ...convs]
-        }
+      const generalId  = `conv_general_${appUser.adminId}`
+      const hasGeneral = convs.find(c => c.conversationId === generalId)
 
-        setConversations(convs)
-        // Auto-select general
-        if (!activeId) {
-          const gen = convs.find(c => c.type === "general")
-          if (gen) setActiveId(gen.conversationId)
+      if (!hasGeneral) {
+        const allUsers = await getUsersByAdmin(appUser.adminId)
+        const general: Conversation = {
+          conversationId: generalId,
+          adminId:        appUser.adminId,
+          type:           "general",
+          name:           "Groupe général",
+          members:        allUsers.map(u => u.uid),
+          memberNames:    allUsers.map(u => u.displayName),
+          createdBy:      appUser.uid,
+          createdAt:      Date.now(),
+          lastMessage:    null,
+          lastMessageAt:  null,
         }
-      } catch (e) {
-        console.error(e)
-      } finally {
-        setLoading(false)
+        await setConversation(general)
+        convs = [general, ...convs]
       }
+
+      setConversations(convs)
+      setActiveId(prev => prev ?? generalId)
+    } catch (e) {
+      console.error("loadConversations error:", e)
+    } finally {
+      setLoading(false)
     }
-    load()
   }, [appUser])
 
-  // Subscribe to messages when activeId changes
+  useEffect(() => {
+    loadConversations()
+  }, [loadConversations])
+
+  // Subscribe to messages of active conversation
   useEffect(() => {
     if (!activeId) return
     setMsgLoading(true)
+    setMessages([])
     const unsub = subscribeConversationMessages(activeId, msgs => {
       setMessages(msgs)
       setMsgLoading(false)
@@ -83,14 +81,13 @@ export function useConversations() {
     memberNames: string[]
   ): Promise<string> {
     if (!appUser) throw new Error("Not logged in")
-    // Always include the creator
     const allUids  = Array.from(new Set([appUser.uid, ...memberUids]))
     const allNames = allUids.map(uid => {
       if (uid === appUser.uid) return appUser.displayName
       const idx = memberUids.indexOf(uid)
       return memberNames[idx] || uid
     })
-    const convId = `conv_${Date.now()}_${Math.random().toString(36).slice(2)}`
+    const convId = `conv_grp_${Date.now()}`
     const conv: Conversation = {
       conversationId: convId,
       adminId:        appUser.adminId,
@@ -104,7 +101,8 @@ export function useConversations() {
       lastMessageAt:  null,
     }
     await setConversation(conv)
-    setConversations(prev => [...prev, conv])
+    setConversations(prev => [conv, ...prev])
+    setActiveId(convId)
     return convId
   }
 
@@ -113,9 +111,11 @@ export function useConversations() {
     otherName: string
   ): Promise<string> {
     if (!appUser) throw new Error("Not logged in")
+
     // Check if DM already exists
     const existing = conversations.find(
-      c => c.type === "direct" &&
+      c =>
+        c.type === "direct" &&
         c.members.includes(appUser.uid) &&
         c.members.includes(otherUid)
     )
@@ -123,7 +123,8 @@ export function useConversations() {
       setActiveId(existing.conversationId)
       return existing.conversationId
     }
-    const convId = `conv_dm_${Date.now()}_${Math.random().toString(36).slice(2)}`
+
+    const convId = `conv_dm_${Date.now()}`
     const conv: Conversation = {
       conversationId: convId,
       adminId:        appUser.adminId,
@@ -137,7 +138,7 @@ export function useConversations() {
       lastMessageAt:  null,
     }
     await setConversation(conv)
-    setConversations(prev => [...prev, conv])
+    setConversations(prev => [conv, ...prev])
     setActiveId(convId)
     return convId
   }
@@ -145,10 +146,8 @@ export function useConversations() {
   async function removeConversation(convId: string) {
     await deleteConversation(convId)
     setConversations(prev => prev.filter(c => c.conversationId !== convId))
-    if (activeId === convId) {
-      const gen = conversations.find(c => c.type === "general")
-      setActiveId(gen?.conversationId || null)
-    }
+    const generalId = `conv_general_${appUser?.adminId}`
+    setActiveId(generalId)
   }
 
   async function send(text: string) {
@@ -164,10 +163,10 @@ export function useConversations() {
       text,
       photoURL:       null,
       type:           "text",
+      edited:         false,
       createdAt:      Date.now(),
-    } as any
+    }
     await sendMessage(msg)
-    // Update conversation last message
     await updateConversation(activeId, {
       lastMessage:   text,
       lastMessageAt: Date.now(),
@@ -195,8 +194,9 @@ export function useConversations() {
       text:           null,
       photoURL:       url,
       type:           "photo",
+      edited:         false,
       createdAt:      Date.now(),
-    } as any
+    }
     await sendMessage(msg)
     await updateConversation(activeId, {
       lastMessage:   "📷 Photo",
