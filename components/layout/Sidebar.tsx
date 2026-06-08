@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState }       from "react"
-import { usePathname, useRouter }    from "next/navigation"
-import { useAuth }                   from "@/hooks/useAuth"
-import { useLang }                   from "@/hooks/useLang"
-import { getAdmin }                  from "@/lib/firestore"
+import { useEffect, useState }    from "react"
+import { usePathname, useRouter } from "next/navigation"
+import { useAuth }                from "@/hooks/useAuth"
+import { useLang }                from "@/hooks/useLang"
+import { getAdmin }               from "@/lib/firestore"
 
 interface NavItem {
   label: string
@@ -62,24 +62,24 @@ export default function Sidebar({ onClose }: SidebarProps) {
   if (!appUser) return null
 
   const navItems: NavItem[] = [
-    { label: t.nav.dashboard,  path: "/dashboard",         icon: "⊞", roles: ["worker", "manager"]                              },
-    { label: t.nav.messages,   path: "/messages",          icon: "◉", roles: ["worker", "manager", "admin"]                     },
-    { label: t.nav.products,   path: "/products",          icon: "▦", roles: ["worker"]                                         },
-    { label: "Mes demandes",   path: "/worker/requests",   icon: "📋", roles: ["worker"]                                        },
-    { label: "Véhicules",      path: "/vehicles",          icon: "🚗", roles: ["worker"]                                        },
-    { label: t.nav.annexe,     path: "/annexe",            icon: "≡", roles: ["manager"]                                        },
-    { label: t.nav.manager,    path: "/manager",           icon: "✓", roles: ["manager"]                                        },
-    { label: "Demandes mat.",  path: "/manager/requests",  icon: "📋", roles: ["manager"]                                       },
-    { label: "Véhicules",      path: "/manager/vehicles",  icon: "🚗", roles: ["manager"]                                       },
-    { label: t.nav.team,       path: "/manager/team",      icon: "◈", roles: ["manager"]                                        },
-    { label: t.nav.admin,      path: "/admin",             icon: "⊛", roles: ["admin"]                                          },
-    { label: t.nav.users,      path: "/admin/users",       icon: "◎", roles: ["admin"]                                          },
-    { label: t.nav.annexe,     path: "/admin/annexe",      icon: "≡", roles: ["admin"]                                          },
-    { label: "Flotte",         path: "/admin/vehicles",    icon: "🚗", roles: ["admin"]                                         },
-    { label: t.nav.stats,      path: "/admin/stats",       icon: "◫", roles: ["admin"]                                          },
-    { label: t.nav.superadmin, path: "/superadmin",        icon: "◈", roles: ["superadmin"]                                     },
-    { label: t.nav.aiTools,    path: "/ai-tools",          icon: "◬", roles: ["worker", "manager", "admin", "superadmin"]       },
-    { label: t.nav.settings,   path: "/settings",          icon: "⊙", roles: ["worker", "manager", "admin", "superadmin"]       },
+    { label: t.nav.dashboard,  path: "/dashboard",         icon: "⊞", roles: ["worker", "manager", "admin"]                    },
+    { label: t.nav.messages,   path: "/messages",          icon: "◉", roles: ["worker", "manager", "admin"]                    },
+    { label: t.nav.products,   path: "/products",          icon: "▦", roles: ["worker"]                                        },
+    { label: "Mes demandes",   path: "/worker/requests",   icon: "📋", roles: ["worker"]                                       },
+    { label: "Véhicules",      path: "/vehicles",          icon: "🚗", roles: ["worker"]                                       },
+    { label: t.nav.annexe,     path: "/annexe",            icon: "≡",  roles: ["manager"]                                      },
+    { label: t.nav.manager,    path: "/manager",           icon: "✓",  roles: ["manager"]                                      },
+    { label: "Demandes mat.",  path: "/manager/requests",  icon: "📋", roles: ["manager"]                                      },
+    { label: "Véhicules",      path: "/manager/vehicles",  icon: "🚗", roles: ["manager"]                                      },
+    { label: t.nav.team,       path: "/manager/team",      icon: "◈",  roles: ["manager"]                                      },
+    { label: t.nav.admin,      path: "/admin",             icon: "⊛",  roles: ["admin"]                                        },
+    { label: t.nav.users,      path: "/admin/users",       icon: "◎",  roles: ["admin"]                                        },
+    { label: t.nav.annexe,     path: "/admin/annexe",      icon: "≡",  roles: ["admin"]                                        },
+    { label: "Flotte",         path: "/admin/vehicles",    icon: "🚗", roles: ["admin"]                                        },
+    { label: t.nav.stats,      path: "/admin/stats",       icon: "◫",  roles: ["admin"]                                        },
+    { label: t.nav.superadmin, path: "/superadmin",        icon: "◈",  roles: ["superadmin"]                                   },
+    { label: t.nav.aiTools,    path: "/ai-tools",          icon: "◬",  roles: ["worker", "manager", "admin", "superadmin"]     },
+    { label: t.nav.settings,   path: "/settings",          icon: "⊙",  roles: ["worker", "manager", "admin", "superadmin"]     },
   ]
 
   const visible = navItems.filter(item => item.roles.includes(appUser.role))
@@ -202,10 +202,19 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 }
               }}
             >
-              <span style={{ fontSize: 14, width: 18, textAlign: "center", flexShrink: 0 }}>
+              <span style={{
+                fontSize:   14,
+                width:      18,
+                textAlign:  "center",
+                flexShrink: 0,
+              }}>
                 {item.icon}
               </span>
-              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span style={{
+                whiteSpace:   "nowrap",
+                overflow:     "hidden",
+                textOverflow: "ellipsis",
+              }}>
                 {item.label}
               </span>
             </button>
