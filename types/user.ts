@@ -1,5 +1,5 @@
-export type Role = "worker" | "manager" | "admin" | "superadmin"
-export type Lang = "fr" | "en"
+export type Role  = "worker" | "manager" | "admin" | "superadmin"
+export type Lang  = "fr" | "en"
 export type Theme = "dark" | "light"
 
 export interface AppUser {
@@ -22,6 +22,7 @@ export interface Admin {
   email:            string
   displayName:      string
   organizationName: string
+  logoURL:          string | null
   createdBy:        string
   createdAt:        number
   isActive:         boolean

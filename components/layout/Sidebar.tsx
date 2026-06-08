@@ -1,8 +1,10 @@
 "use client"
 
-import { usePathname, useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/useAuth"
-import { useLang } from "@/hooks/useLang"
+import { useEffect, useState }       from "react"
+import { usePathname, useRouter }    from "next/navigation"
+import { useAuth }                   from "@/hooks/useAuth"
+import { useLang }                   from "@/hooks/useLang"
+import { getAdmin }                  from "@/lib/firestore"
 
 interface NavItem {
   label: string
@@ -13,6 +15,42 @@ interface NavItem {
 
 interface SidebarProps {
   onClose?: () => void
+}
+
+function LogoIcon({ adminId }: { adminId: string }) {
+  const [logoURL, setLogoURL] = useState<string | null>(null)
+
+  useEffect(() => {
+    getAdmin(adminId).then(admin => {
+      if (admin?.logoURL) setLogoURL(admin.logoURL)
+    })
+  }, [adminId])
+
+  return (
+    <div style={{
+      width:          32,
+      height:         32,
+      background:     "var(--accent-bg)",
+      border:         "0.5px solid var(--border-focus)",
+      borderRadius:   8,
+      display:        "flex",
+      alignItems:     "center",
+      justifyContent: "center",
+      fontSize:       16,
+      flexShrink:     0,
+      overflow:       "hidden",
+    }}>
+      {logoURL ? (
+        <img
+          src={logoURL}
+          alt="logo"
+          style={{ width: "100%", height: "100%", objectFit: "contain" }}
+        />
+      ) : (
+        <span>⚙</span>
+      )}
+    </div>
+  )
 }
 
 export default function Sidebar({ onClose }: SidebarProps) {
@@ -91,20 +129,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
         justifyContent: "space-between",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width:          32,
-            height:         32,
-            background:     "var(--accent-bg)",
-            border:         "0.5px solid var(--border-focus)",
-            borderRadius:   8,
-            display:        "flex",
-            alignItems:     "center",
-            justifyContent: "center",
-            fontSize:       16,
-            flexShrink:     0,
-          }}>
-            ⚙
-          </div>
+          <LogoIcon adminId={appUser.adminId} />
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text)" }}>
               PFE App
@@ -120,7 +145,6 @@ export default function Sidebar({ onClose }: SidebarProps) {
           </div>
         </div>
 
-        {/* Close button — mobile */}
         {onClose && (
           <button
             onClick={onClose}
@@ -178,19 +202,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
                 }
               }}
             >
-              <span style={{
-                fontSize:   14,
-                width:      18,
-                textAlign:  "center",
-                flexShrink: 0,
-              }}>
+              <span style={{ fontSize: 14, width: 18, textAlign: "center", flexShrink: 0 }}>
                 {item.icon}
               </span>
-              <span style={{
-                whiteSpace:   "nowrap",
-                overflow:     "hidden",
-                textOverflow: "ellipsis",
-              }}>
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {item.label}
               </span>
             </button>
@@ -224,13 +239,11 @@ export default function Sidebar({ onClose }: SidebarProps) {
             onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
             <span style={{ fontSize: 14, width: 18, textAlign: "center" }}>⇄</span>
-            <span>
-              {appUser.role === "admin" ? "Vue Manager" : "Vue Admin"}
-            </span>
+            <span>{appUser.role === "admin" ? "Vue Manager" : "Vue Admin"}</span>
           </button>
         )}
 
-        {/* User info */}
+        {/* User avatar + info */}
         <div style={{
           display:    "flex",
           alignItems: "center",
@@ -240,7 +253,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
           <div style={{
             width:          28,
             height:         28,
-            borderRadius:   7,
+            borderRadius:   "50%",
             background:     "var(--accent-bg)",
             border:         "0.5px solid var(--border-focus)",
             display:        "flex",
@@ -250,8 +263,17 @@ export default function Sidebar({ onClose }: SidebarProps) {
             fontWeight:     500,
             color:          "var(--accent)",
             flexShrink:     0,
+            overflow:       "hidden",
           }}>
-            {appUser.displayName.slice(0, 2).toUpperCase()}
+            {appUser.photoURL ? (
+              <img
+                src={appUser.photoURL}
+                alt={appUser.displayName}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              appUser.displayName.slice(0, 2).toUpperCase()
+            )}
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{

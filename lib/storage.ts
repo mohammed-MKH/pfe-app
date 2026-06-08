@@ -36,6 +36,10 @@ export async function uploadAvatar(uid: string, file: File): Promise<string> {
   return uploadToCloudinary(file, `avatars/${uid}`)
 }
 
+export async function uploadLogo(adminId: string, file: File): Promise<string> {
+  return uploadToCloudinary(file, `logos/${adminId}`)
+}
+
 export async function deleteFile(_url: string): Promise<void> {
   // Cloudinary deletion requires server-side — skipped
 }

@@ -18,10 +18,36 @@ function dateDivider(ts: number, lang: string): string {
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })
 }
 
+function Avatar({ name, photoURL, size = 28 }: { name: string; photoURL?: string | null; size?: number }) {
+  return (
+    <div style={{
+      width:          size,
+      height:         size,
+      borderRadius:   "50%",
+      background:     "var(--accent-bg)",
+      border:         "0.5px solid var(--border-focus)",
+      display:        "flex",
+      alignItems:     "center",
+      justifyContent: "center",
+      fontSize:       size * 0.38,
+      fontWeight:     600,
+      color:          "var(--accent)",
+      flexShrink:     0,
+      overflow:       "hidden",
+    }}>
+      {photoURL ? (
+        <img src={photoURL} alt={name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      ) : (
+        name.slice(0, 2).toUpperCase()
+      )}
+    </div>
+  )
+}
+
 function MessageBubble({
   msg, isMe, onDelete, onEdit,
 }: {
-  msg:      Message
+  msg:      Message & { senderPhotoURL?: string | null }
   isMe:     boolean
   onDelete: () => void
   onEdit:   (text: string) => void
@@ -29,9 +55,7 @@ function MessageBubble({
   const [showMenu, setShowMenu] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [editText, setEditText] = useState(msg.text || "")
-  const time = new Date(msg.createdAt).toLocaleTimeString([], {
-    hour: "2-digit", minute: "2-digit",
-  })
+  const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 
   return (
     <div style={{
@@ -42,28 +66,26 @@ function MessageBubble({
       marginBottom:  6,
     }}>
       {!isMe && (
-        <div style={{
-          width: 28, height: 28, borderRadius: 7,
-          background: "var(--surface)", border: "0.5px solid var(--border)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 10, fontWeight: 500, color: "var(--text-sub)", flexShrink: 0,
-        }}>
-          {msg.senderName.slice(0, 2).toUpperCase()}
-        </div>
+        <Avatar name={msg.senderName} photoURL={(msg as any).senderPhotoURL} size={28} />
       )}
 
       <div style={{
-        display: "flex", flexDirection: "column",
-        alignItems: isMe ? "flex-end" : "flex-start",
-        maxWidth: "72%", gap: 3,
+        display:       "flex",
+        flexDirection: "column",
+        alignItems:    isMe ? "flex-end" : "flex-start",
+        maxWidth:      "72%",
+        gap:           3,
       }}>
         {!isMe && (
           <div style={{ fontSize: 10, color: "var(--text-muted)", paddingLeft: 4 }}>
             {msg.senderName}
           </div>
         )}
+
         <div style={{
-          display: "flex", alignItems: "flex-end", gap: 4,
+          display:       "flex",
+          alignItems:    "flex-end",
+          gap:           4,
           flexDirection: isMe ? "row-reverse" : "row",
         }}>
           {editMode ? (
@@ -116,10 +138,13 @@ function MessageBubble({
                 }}>
                   {msg.text}
                   {msg.edited && (
-                    <span style={{ fontSize: 9, color: "var(--text-muted)", marginLeft: 6, fontStyle: "italic" }}>modifié</span>
+                    <span style={{ fontSize: 9, color: "var(--text-muted)", marginLeft: 6, fontStyle: "italic" }}>
+                      modifié
+                    </span>
                   )}
                 </div>
               )}
+
               {isMe && msg.type !== "photo" && (
                 <div style={{ position: "relative" }}>
                   <button onClick={() => setShowMenu(v => !v)}
@@ -152,6 +177,7 @@ function MessageBubble({
             </>
           )}
         </div>
+
         <div style={{ fontSize: 10, color: "var(--text-muted)", paddingLeft: isMe ? 0 : 4, paddingRight: isMe ? 4 : 0 }}>
           {time}
         </div>
@@ -160,7 +186,6 @@ function MessageBubble({
   )
 }
 
-// ── SCREEN TYPES ──────────────────────────────────────────────────────────────
 type Screen = "list" | "chat" | "new-dm" | "new-group"
 
 function MessagesContent() {
@@ -226,11 +251,13 @@ function MessagesContent() {
     setScreen("chat")
   }
 
-  const activeConv    = conversations.find(c => c.conversationId === activeId)
-  const isManager     = appUser?.role === "manager" || appUser?.role === "admin"
-  const convIcon      = (type: Conversation["type"]) =>
+  const activeConv = conversations.find(c => c.conversationId === activeId)
+  const isManager  = appUser?.role === "manager" || appUser?.role === "admin"
+
+  const convIcon = (type: Conversation["type"]) =>
     type === "general" ? "◉" : type === "group" ? "◈" : "◎"
-  const convName      = (conv: Conversation) =>
+
+  const convName = (conv: Conversation) =>
     conv.type === "direct"
       ? conv.memberNames.find((_, i) => conv.members[i] !== appUser?.uid) || conv.name
       : conv.name
@@ -243,40 +270,28 @@ function MessagesContent() {
     fontSize: 13, fontFamily: "inherit", outline: "none", width: "100%",
   }
 
-  // ── SCREEN: LIST ────────────────────────────────────────────────────────────
+  // ── LIST ──────────────────────────────────────────────────────────────────
   if (screen === "list") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: 0, height: "calc(100vh - 52px)", overflow: "hidden" }}>
-
-        {/* Header */}
+      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 52px)", overflow: "hidden" }}>
         <div style={{
-          padding: "16px 20px 12px",
+          padding: "16px 20px 14px",
           borderBottom: "0.5px solid var(--border)",
           background: "var(--surface)",
+          flexShrink: 0,
         }}>
           <div style={{ fontSize: 16, fontWeight: 600, color: "var(--text)", marginBottom: 12 }}>
             Messages
           </div>
-
-          {/* Action buttons — big and visible */}
           <div style={{ display: "flex", gap: 8 }}>
             <button
               onClick={() => setScreen("new-dm")}
               style={{
-                flex:         1,
-                display:      "flex",
-                alignItems:   "center",
-                justifyContent: "center",
-                gap:          8,
-                padding:      "11px 0",
-                background:   "var(--accent)",
-                color:        "#fff",
-                border:       "none",
-                borderRadius: 9,
-                fontSize:     13,
-                fontWeight:   500,
-                cursor:       "pointer",
-                fontFamily:   "inherit",
+                flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 8, padding: "11px 0",
+                background: "var(--accent)", color: "#fff",
+                border: "none", borderRadius: 9,
+                fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
               }}
             >
               ◎ Message direct
@@ -285,20 +300,11 @@ function MessagesContent() {
               <button
                 onClick={() => setScreen("new-group")}
                 style={{
-                  flex:         1,
-                  display:      "flex",
-                  alignItems:   "center",
-                  justifyContent: "center",
-                  gap:          8,
-                  padding:      "11px 0",
-                  background:   "var(--card)",
-                  color:        "var(--text)",
-                  border:       "0.5px solid var(--border)",
-                  borderRadius: 9,
-                  fontSize:     13,
-                  fontWeight:   500,
-                  cursor:       "pointer",
-                  fontFamily:   "inherit",
+                  flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+                  gap: 8, padding: "11px 0",
+                  background: "var(--card)", color: "var(--text)",
+                  border: "0.5px solid var(--border)", borderRadius: 9,
+                  fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
                 }}
               >
                 ◈ Nouveau groupe
@@ -307,14 +313,13 @@ function MessagesContent() {
           </div>
         </div>
 
-        {/* Conversations list */}
         <div style={{ flex: 1, overflowY: "auto", padding: "8px" }}>
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
               <div className="spinner" />
             </div>
           ) : conversations.length === 0 ? (
-            <div style={{ padding: 20, fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>
+            <div style={{ padding: 24, fontSize: 13, color: "var(--text-muted)", textAlign: "center" }}>
               Aucune conversation
             </div>
           ) : (
@@ -327,30 +332,23 @@ function MessagesContent() {
               .map(conv => (
                 <div
                   key={conv.conversationId}
-                  onClick={() => {
-                    setActiveId(conv.conversationId)
-                    setScreen("chat")
-                  }}
+                  onClick={() => { setActiveId(conv.conversationId); setScreen("chat") }}
                   style={{
-                    display:      "flex",
-                    alignItems:   "center",
-                    gap:          12,
-                    padding:      "12px 14px",
-                    borderRadius: 10,
-                    cursor:       "pointer",
-                    marginBottom: 3,
-                    background:   "var(--card)",
-                    border:       "0.5px solid var(--border)",
+                    display: "flex", alignItems: "center", gap: 12,
+                    padding: "12px 14px", borderRadius: 10, cursor: "pointer",
+                    marginBottom: 4,
+                    background: conv.conversationId === activeId ? "var(--accent-bg)" : "var(--card)",
+                    border: `0.5px solid ${conv.conversationId === activeId ? "var(--border-focus)" : "var(--border)"}`,
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = "var(--card-hover)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "var(--card)"}
+                  onMouseEnter={e => e.currentTarget.style.opacity = "0.85"}
+                  onMouseLeave={e => e.currentTarget.style.opacity = "1"}
                 >
                   <div style={{
-                    width: 42, height: 42, borderRadius: 11,
+                    width: 44, height: 44, borderRadius: 11,
                     background: conv.type === "general" ? "var(--accent)" : "var(--surface)",
                     border: "0.5px solid var(--border)",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 18, flexShrink: 0,
+                    fontSize: 20, flexShrink: 0,
                   }}>
                     {convIcon(conv.type)}
                   </div>
@@ -378,18 +376,19 @@ function MessagesContent() {
     )
   }
 
-  // ── SCREEN: NEW DM ──────────────────────────────────────────────────────────
+  // ── NEW DM ────────────────────────────────────────────────────────────────
   if (screen === "new-dm") {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 52px)", overflow: "hidden" }}>
         <div style={{
           padding: "14px 20px", borderBottom: "0.5px solid var(--border)",
           background: "var(--surface)", display: "flex", alignItems: "center", gap: 12,
+          flexShrink: 0,
         }}>
-          <button
-            onClick={() => setScreen("list")}
-            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20, padding: "2px 6px", lineHeight: 1 }}
-          >←</button>
+          <button onClick={() => setScreen("list")}
+            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20, padding: "2px 6px", lineHeight: 1 }}>
+            ←
+          </button>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>
             Nouveau message direct
           </div>
@@ -413,20 +412,12 @@ function MessagesContent() {
                     display: "flex", alignItems: "center", gap: 14,
                     padding: "12px 16px",
                     background: "var(--card)", border: "0.5px solid var(--border)",
-                    borderRadius: 10, cursor: "pointer", fontFamily: "inherit",
-                    textAlign: "left", width: "100%",
+                    borderRadius: 10, cursor: "pointer", fontFamily: "inherit", textAlign: "left", width: "100%",
                   }}
                   onMouseEnter={e => e.currentTarget.style.background = "var(--card-hover)"}
                   onMouseLeave={e => e.currentTarget.style.background = "var(--card)"}
                 >
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 11,
-                    background: "var(--accent-bg)", border: "0.5px solid var(--border-focus)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 14, fontWeight: 600, color: "var(--accent)", flexShrink: 0,
-                  }}>
-                    {u.displayName.slice(0, 2).toUpperCase()}
-                  </div>
+                  <Avatar name={u.displayName} photoURL={u.photoURL} size={42} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 500, color: "var(--text)" }}>
                       {u.displayName}
@@ -445,18 +436,19 @@ function MessagesContent() {
     )
   }
 
-  // ── SCREEN: NEW GROUP ───────────────────────────────────────────────────────
+  // ── NEW GROUP ─────────────────────────────────────────────────────────────
   if (screen === "new-group") {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 52px)", overflow: "hidden" }}>
         <div style={{
           padding: "14px 20px", borderBottom: "0.5px solid var(--border)",
           background: "var(--surface)", display: "flex", alignItems: "center", gap: 12,
+          flexShrink: 0,
         }}>
-          <button
-            onClick={() => setScreen("list")}
-            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20, padding: "2px 6px", lineHeight: 1 }}
-          >←</button>
+          <button onClick={() => setScreen("list")}
+            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20, padding: "2px 6px", lineHeight: 1 }}>
+            ←
+          </button>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>
             Nouveau groupe
           </div>
@@ -473,8 +465,7 @@ function MessagesContent() {
                 onChange={e => setGroupName(e.target.value)}
                 placeholder="Ex: Équipe Chantier Nord..."
                 style={inputStyle}
-                required
-                autoFocus
+                required autoFocus
                 onFocus={e => e.target.style.borderColor = "var(--border-focus)"}
                 onBlur={e  => e.target.style.borderColor = "var(--input-border)"}
               />
@@ -486,16 +477,13 @@ function MessagesContent() {
               </label>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {allUsers.map(u => (
-                  <label
-                    key={u.uid}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 12,
-                      padding: "10px 14px",
-                      background: selectedUids.includes(u.uid) ? "var(--accent-bg)" : "var(--card)",
-                      border: `0.5px solid ${selectedUids.includes(u.uid) ? "var(--border-focus)" : "var(--border)"}`,
-                      borderRadius: 9, cursor: "pointer",
-                    }}
-                  >
+                  <label key={u.uid} style={{
+                    display: "flex", alignItems: "center", gap: 12,
+                    padding: "10px 14px",
+                    background: selectedUids.includes(u.uid) ? "var(--accent-bg)" : "var(--card)",
+                    border: `0.5px solid ${selectedUids.includes(u.uid) ? "var(--border-focus)" : "var(--border)"}`,
+                    borderRadius: 9, cursor: "pointer",
+                  }}>
                     <input
                       type="checkbox"
                       checked={selectedUids.includes(u.uid)}
@@ -504,14 +492,7 @@ function MessagesContent() {
                       )}
                       style={{ width: 16, height: 16, flexShrink: 0 }}
                     />
-                    <div style={{
-                      width: 32, height: 32, borderRadius: 8,
-                      background: "var(--surface)", border: "0.5px solid var(--border)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 11, fontWeight: 600, color: "var(--text-sub)",
-                    }}>
-                      {u.displayName.slice(0, 2).toUpperCase()}
-                    </div>
+                    <Avatar name={u.displayName} photoURL={u.photoURL} size={32} />
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>
                         {u.displayName}
@@ -545,20 +526,20 @@ function MessagesContent() {
     )
   }
 
-  // ── SCREEN: CHAT ────────────────────────────────────────────────────────────
+  // ── CHAT ──────────────────────────────────────────────────────────────────
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 52px)", overflow: "hidden" }}>
 
-      {/* Chat header */}
+      {/* Header */}
       <div style={{
         padding: "12px 20px", background: "var(--surface)",
         borderBottom: "0.5px solid var(--border)",
         display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
       }}>
-        <button
-          onClick={() => setScreen("list")}
-          style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20, padding: "2px 6px", lineHeight: 1 }}
-        >←</button>
+        <button onClick={() => setScreen("list")}
+          style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20, padding: "2px 6px", lineHeight: 1 }}>
+          ←
+        </button>
         <div style={{
           width: 36, height: 36, borderRadius: 9,
           background: "var(--card)", border: "0.5px solid var(--border)",
@@ -583,7 +564,6 @@ function MessagesContent() {
           <button
             onClick={() => { removeConversation(activeConv.conversationId); setScreen("list") }}
             style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, padding: "4px 6px" }}
-            title="Supprimer la conversation"
           >🗑</button>
         )}
       </div>
@@ -598,10 +578,7 @@ function MessagesContent() {
             <div className="spinner" />
           </div>
         ) : messages.length === 0 ? (
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flex: 1, color: "var(--text-muted)", fontSize: 13,
-          }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1, color: "var(--text-muted)", fontSize: 13 }}>
             Aucun message — envoyez le premier !
           </div>
         ) : (
@@ -622,7 +599,7 @@ function MessagesContent() {
                   </div>
                 )}
                 <MessageBubble
-                  msg={msg}
+                  msg={msg as any}
                   isMe={isMe}
                   onDelete={() => removeMessage(msg.messageId)}
                   onEdit={text  => editMsg(msg.messageId, text)}
@@ -670,9 +647,9 @@ function MessagesContent() {
           style={{
             background:   text.trim() && !sending ? "var(--accent)" : "var(--card)",
             color:        text.trim() && !sending ? "#fff"          : "var(--text-muted)",
-            border:       "0.5px solid var(--border)",
-            borderRadius: 8, padding: "9px 16px", fontSize: 12,
-            fontWeight: 500, cursor: text.trim() && !sending ? "pointer" : "not-allowed",
+            border: "0.5px solid var(--border)", borderRadius: 8, padding: "9px 16px",
+            fontSize: 12, fontWeight: 500,
+            cursor: text.trim() && !sending ? "pointer" : "not-allowed",
             fontFamily: "inherit", flexShrink: 0,
           }}
         >
