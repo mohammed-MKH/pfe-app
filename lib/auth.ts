@@ -1,7 +1,5 @@
 import {
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
 } from "firebase/auth"
 import { auth } from "../lib/firebase"
 import { setUser, setAdmin } from "./firestore"
@@ -62,6 +60,7 @@ export async function createAdminAccount(params: {
     email:            params.email,
     displayName:      params.displayName,
     organizationName: params.organizationName,
+    logoURL:          null,
     createdBy:        params.createdBy,
     createdAt:        Date.now(),
     isActive:         true,
@@ -90,8 +89,8 @@ export async function createAdminAccount(params: {
 
 // Create the Super Admin user (run once manually)
 export async function createSuperAdmin(params: {
-  email:    string
-  password: string
+  email:       string
+  password:    string
   displayName: string
 }): Promise<AppUser> {
   const cred = await createUserWithEmailAndPassword(
