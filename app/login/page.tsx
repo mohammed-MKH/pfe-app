@@ -17,7 +17,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
-  // If already logged in redirect
+  // If already logged in (or once login resolves), redirect to the
+  // correct role-based home route. This effect is the ONLY navigator.
   useEffect(() => {
     if (!loading && appUser) {
       router.replace(getHomeRoute(appUser.role))
@@ -25,18 +26,20 @@ export default function LoginPage() {
   }, [appUser, loading, router])
 
   async function handleSubmit(e: React.FormEvent) {
-  e.preventDefault()
-  setSubmitting(true)
+    e.preventDefault()
+    setSubmitting(true)
 
-  try {
-    await login(email, password)
-
-    window.location.href = "/dashboard"
-  } catch (err) {
-    console.error("Login failed:", err)
-    setSubmitting(false)
+    try {
+      await login(email, password)
+      // Do NOT navigate here. Once `login` updates auth state,
+      // the useEffect above will redirect to the right role route.
+      // Keep `submitting` true so the button stays disabled during
+      // the brief moment before the redirect fires.
+    } catch (err) {
+      console.error("Login failed:", err)
+      setSubmitting(false)
+    }
   }
-}
 
   return (
     <div style={{
