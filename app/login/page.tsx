@@ -25,11 +25,18 @@ export default function LoginPage() {
   }, [appUser, loading, router])
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSubmitting(true)
+  e.preventDefault()
+  setSubmitting(true)
+
+  try {
     await login(email, password)
+
+    window.location.href = "/dashboard"
+  } catch (err) {
+    console.error("Login failed:", err)
     setSubmitting(false)
   }
+}
 
   return (
     <div style={{
