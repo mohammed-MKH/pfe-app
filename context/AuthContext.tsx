@@ -41,9 +41,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setFirebaseUser(user)
       if (user) {
         try {
+          console.log("[Auth] onAuthStateChanged fired. UID =", user.uid)
           const data = await getUser(user.uid)
+          console.log("[Auth] getUser returned:", data)
           setAppUser(data)
-        } catch {
+        } catch (err) {
+          console.error("[Auth] getUser FAILED:", err)
           setAppUser(null)
         }
       } else {
